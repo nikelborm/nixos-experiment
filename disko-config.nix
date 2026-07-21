@@ -47,6 +47,16 @@
     lvm_vg.pool = {
       type = "lvm_vg";
       lvs = {
+        swap = {
+          size = "100%";
+          content = {
+            type = "swap";
+            priority = 0;
+            discardPolicy = "both";
+            randomEncryption = false;
+            resumeDevice = false;
+          };
+        };
         root = {
           size = "100%";
           content = {
@@ -67,16 +77,6 @@
                 mountpoint = "/home";
               };
             };
-          };
-        };
-        swap = {
-          size = "100%";
-          content = {
-            type = "swap";
-            priority = 0;
-            discardPolicy = "both";
-            randomEncryption = false;
-            resumeDevice = false;
           };
         };
       };
