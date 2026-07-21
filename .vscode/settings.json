@@ -6,6 +6,9 @@
   },
   "nix.serverSettings": {
     "nixd": {
+      "nixpkgs": {
+        "expr": "import (builtins.getFlake (toString ./.)).inputs.nixpkgs { system = \"x86_64-linux\"; }"
+      },
       "options": {
         "nixos": {
           "expr": "(builtins.getFlake (toString ./.)).nixosConfigurations.myhost.options"
