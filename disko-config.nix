@@ -1,52 +1,9 @@
 let
-  # Common btrfs mount options for every subvolume.
-  # `ssd` and `space_cache=v2` are stated explicitly rather than relying on
-  # btrfs auto-detection: the filesystem sits on top of a LUKS+LVM
-  # device-mapper stack, where the underlying `rotational` flag does not
-  # always propagate, so we don't want btrfs guessing wrong.
-  btrfsOpts = [
-    "noatime"
-    "compress=zstd"
-    "ssd"
-    "space_cache=v2"
-  ];
-
-  # Build a btrfs subvolume entry, following our naming convention: the
-  # subvolume is named after the mountpoint with the leading slash dropped,
-  # every remaining slash turned into an underscore, and an `@` prefix (so
-  # `/var/lib/docker` -> `@var_lib_docker`, and `/` -> `@`).
-  #
-  # The argument is either a bare mountpoint string, or a
-  # `{ mountpoint; extraOptions; }` attrset when extra mount options are needed
-  # (both fields required in that form). Any `extraOptions` are appended to the
-  # shared `btrfsOpts` (e.g. a `nofail` for a mountpoint that may not always be
-  # present).
-  #
-  # Returns a `{ name; value; }` pair for `builtins.listToAttrs`, where the
-  # attribute name is the disko subvolume key (`/@…`).
-  mkSubvol =
-    entry:
-    let
-      mountpoint = if builtins.isString entry then entry else entry.mountpoint;
-      extraOptions = if builtins.isString entry then [ ] else entry.extraOptions;
-      # Drop the leading "/" (substring from index 1); "/" itself becomes "".
-      relative = builtins.substring 1 (builtins.stringLength mountpoint) mountpoint;
-      subvol = "@" + builtins.replaceStrings [ "/" ] [ "_" ] relative;
-    in
-    {
-      name = "/${subvol}";
-      value = {
-        inherit mountpoint;
-        mountOptions = btrfsOpts ++ extraOptions;
-      };
-    };
-
-  # ESP - the EFI system partition, mounted at /boot.
   espPartition = {
     priority = 1;
     name = "ESP";
     start = "1M";
-    end = "1G"; # 1G, matches the old /boot size; room for many generations
+    end = "4G"; # room for per-btrfs-snapshot UKI generations
     type = "EF00";
     content = {
       type = "filesystem";
@@ -56,12 +13,50 @@ let
     };
   };
 
-  # LUKS partition - fills the rest of the disk and holds the LVM PV.
+  btrfsOpts = [
+    "noatime"
+    "compress=zstd"
+    # stated these explicitly rather than relying on btrfs auto-detection: the
+    # filesystem sits on top of a LUKS+LVM device-mapper stack, where the
+    # underlying `rotational` flag does not always propagate, so we don't want
+    # btrfs guessing wrong.
+    "ssd"
+    "space_cache=v2"
+  ];
+
+  rootSubvolumes = builtins.listToAttrs (
+    map mkSubvol [
+      "/"
+      "/home"
+      {
+        mountpoint = "/home/evadev/.vagrant.d/boxes";
+        extraOptions = [ "nofail" ];
+      }
+      "/var/lib/libvirt/qemu/save"
+      "/var/lib/libvirt/qemu/dump"
+      "/var/lib/libvirt/qemu/ram"
+      "/var/lib/libvirt/images"
+      "/var/lib/libvirt/boot"
+      "/var/lib/ollama"
+      "/var/lib/docker"
+      "/var/lib/rancher"
+      "/var/lib/kubelet"
+      "/big_media"
+      "/var/cache"
+      "/var/log"
+      "/var/tmp"
+    ]
+  );
+
   luksPartition = {
     size = "100%";
     content = {
       type = "luks";
       name = "crypted";
+      content = {
+        type = "lvm_pv";
+        vg = "pool";
+      };
 
       # ---------------------------------------------------------------
       # LUKS2 format parameters. Baked in permanently at `luksFormat`
@@ -191,43 +186,35 @@ let
       # above) BEFORE relying on it - a wrong PCR set otherwise only shows
       # up at the next boot and forces you onto the recovery key.
       # ================================================================
-
-      content = {
-        type = "lvm_pv";
-        vg = "pool";
-      };
     };
   };
 
-  # Root btrfs subvolumes, one per mountpoint (see `mkSubvol`).
-  rootSubvolumes = builtins.listToAttrs (map mkSubvol [
-    "/"
-    "/home"
+  mkSubvol =
+    entry:
+    let
+      mountpoint = if builtins.isString entry then entry else entry.mountpoint;
+      extraOptions = if builtins.isString entry then [ ] else entry.extraOptions;
+      # Drop the leading "/" (substring from index 1); "/" itself becomes "".
+      relative = builtins.substring 1 (builtins.stringLength mountpoint) mountpoint;
+      subvol = "@" + builtins.replaceStrings [ "/" ] [ "_" ] relative;
+    in
     {
-      mountpoint = "/home/nikel/.vagrant.d/boxes";
-      extraOptions = [ "nofail" ];
-    }
-    "/var/lib/libvirt/qemu/save"
-    "/var/lib/libvirt/qemu/dump"
-    "/var/lib/libvirt/qemu/ram"
-    "/var/lib/libvirt/images"
-    "/var/lib/libvirt/boot"
-    "/var/lib/ollama"
-    "/var/lib/docker"
-    "/var/lib/rancher"
-    "/var/lib/kubelet"
-    "/big_media"
-    "/var/cache"
-    "/var/log"
-    "/var/tmp"
-  ]);
+      name = "/${subvol}";
+      value = {
+        inherit mountpoint;
+        mountOptions = btrfsOpts ++ extraOptions;
+      };
+    };
 in
 {
   disko.devices = {
     disk.main = {
       # For the real install, prefer a stable path, e.g.
-      #   /dev/disk/by-id/nvme-SAMSUNG_MZVLQ512HBLU-00B00_<serial>
-      # `/dev/nvme0n1` is fine for VM testing.
+      # - /dev/disk/by-id/nvme-SAMSUNG_MZVLQ512HBLU-00B00_S6F5NJ0R764519
+      #
+      # For testing these are fine
+      # - /dev/vda (VMs)
+      # - /dev/nvme0n1
       device = "/dev/nvme0n1";
       type = "disk";
       content = {
