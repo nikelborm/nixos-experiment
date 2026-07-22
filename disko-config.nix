@@ -231,7 +231,7 @@ in
         # "100%" root would consume the whole VG and leave nothing for swap.
         # 23G matches the old swap partition and is >= RAM for hibernation.
         swap = {
-          size = "23G";
+          size = "2G";
           content = {
             type = "swap";
             priority = 0;
