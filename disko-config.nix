@@ -40,9 +40,12 @@ let
       # chattr +C
       "/var/lib/libvirt/images"
       # chattr +C
+      # drwxrwsr-x
       "/var/lib/libvirt/boot"
       "/var/lib/ollama"
       "/var/lib/docker"
+      "/var/lib/containers"
+      "/var/lib/containerd"
       "/var/lib/rancher"
       "/var/lib/kubelet"
       "/big_media"
@@ -51,6 +54,7 @@ let
       # chattr +C
       "/var/log"
       # chattr +C
+      # drwxrwxrwt
       "/var/tmp"
     ]
   );
