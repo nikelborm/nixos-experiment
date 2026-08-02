@@ -27,7 +27,9 @@ let
   rootSubvolumes = builtins.listToAttrs (
     map mkSubvol [
       "/"
+      # chattr +C /home/nikel/.cache
       "/home"
+      # chattr +C
       {
         mountpoint = "/home/evadev/.vagrant.d/boxes";
         extraOptions = [ "nofail" ];
@@ -35,15 +37,20 @@ let
       "/var/lib/libvirt/qemu/save"
       "/var/lib/libvirt/qemu/dump"
       "/var/lib/libvirt/qemu/ram"
+      # chattr +C
       "/var/lib/libvirt/images"
+      # chattr +C
       "/var/lib/libvirt/boot"
       "/var/lib/ollama"
       "/var/lib/docker"
       "/var/lib/rancher"
       "/var/lib/kubelet"
       "/big_media"
+      # chattr +C
       "/var/cache"
+      # chattr +C
       "/var/log"
+      # chattr +C
       "/var/tmp"
     ]
   );
