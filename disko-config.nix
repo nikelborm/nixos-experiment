@@ -46,9 +46,12 @@ let
       "/var/lib/libvirt/qemu/dump"
       # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_ram
       "/var/lib/libvirt/qemu/ram"
+      # nocow on both images,boot because we don't know for sure the
+      # modifications workload and it has a chance of being heavy random updates
       # chattr +C @var_lib_libvirt_images
       "/var/lib/libvirt/images"
       # chattr +C @var_lib_libvirt_boot
+      # so that people can freely add images and it will get libvirt group
       # chmod g+s @var_lib_libvirt_boot
       # chown libvirt:libvirt @var_lib_libvirt_boot
       "/var/lib/libvirt/boot"
