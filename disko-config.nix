@@ -244,7 +244,7 @@ in
       # For testing these are fine
       # - /dev/vda (VMs)
       # - /dev/nvme0n1
-      device = "/dev/disk/by-id/nvme-SAMSUNG_MZVLQ512HBLU-00B00_S6F5NJ0R764519";
+      device = "/dev/vda";
       type = "disk";
       content = {
         type = "gpt";
@@ -260,7 +260,7 @@ in
         # "100%" root would consume the whole VG and leave nothing for swap.
         # 23G matches the old swap partition and is >= RAM for hibernation.
         swap = {
-          size = "32G";
+          size = "2G";
           content = {
             type = "swap";
             priority = 0;
