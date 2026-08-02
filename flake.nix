@@ -19,7 +19,7 @@
         # `imports` without triggering infinite recursion
         specialArgs = { inherit inputs; };
         modules = [
-          ./hardware-laptop.nix
+          ./hardware-vm.nix
           ./configuration.nix
         ];
       };
