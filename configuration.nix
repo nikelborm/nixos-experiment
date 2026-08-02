@@ -31,6 +31,7 @@
   # enabled above.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.efi.efiSysMountPoint = "/efi";
 
   # =================================================================
   # LATER: SECURE BOOT (lanzaboote) - kept commented until you set it up.
@@ -46,12 +47,12 @@
   # };
 
   # --- Minimal system identity (fill in for a real install) --------
-  # networking.hostName = "myhost";
-  # time.timeZone = "Europe/Moscow";
-  # users.users.nikel = {
-  #   isNormalUser = true;
-  #   extraGroups = [ "wheel" ];
-  # };
+  networking.hostName = "xiaomi-A35S-laptop";
+  time.timeZone = "Europe/Moscow";
+  users.users.evadev = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
+  };
 
   # Set to the NixOS release you FIRST installed with; do not bump casually.
   # system.stateVersion = "25.05";

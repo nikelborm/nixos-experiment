@@ -8,7 +8,7 @@ let
     content = {
       type = "filesystem";
       format = "vfat";
-      mountpoint = "/boot";
+      mountpoint = "/efi";
       mountOptions = [ "umask=0077" ];
     };
   };
@@ -27,34 +27,46 @@ let
   rootSubvolumes = builtins.listToAttrs (
     map mkSubvol [
       "/"
-      # chattr +C /home/nikel/.cache
       "/home"
-      # chattr +C
+      # chattr +C @home_evadev_.cache
+      {
+        mountpoint = "/home/evadev/.cache";
+        extraOptions = [ "nofail" ];
+      }
+      # chattr +C @home_evadev_.vagrant.d_boxes/
+      # touch @home_evadev_.vagrant.d_boxes/.gitkeep
+      # chown -R evadev:evadev @home_evadev_.vagrant.d_boxes
       {
         mountpoint = "/home/evadev/.vagrant.d/boxes";
         extraOptions = [ "nofail" ];
       }
+      # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_save
       "/var/lib/libvirt/qemu/save"
+      # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_dump
       "/var/lib/libvirt/qemu/dump"
+      # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_ram
       "/var/lib/libvirt/qemu/ram"
-      # chattr +C
+      # chattr +C @var_lib_libvirt_images
       "/var/lib/libvirt/images"
-      # chattr +C
-      # drwxrwsr-x
+      # chattr +C @var_lib_libvirt_boot
+      # chmod g+s @var_lib_libvirt_boot
+      # chown libvirt:libvirt @var_lib_libvirt_boot
       "/var/lib/libvirt/boot"
+      # chown libvirt-qemu:libvirt-qemu @var_lib_ollama
       "/var/lib/ollama"
       "/var/lib/docker"
       "/var/lib/containers"
       "/var/lib/containerd"
       "/var/lib/rancher"
       "/var/lib/kubelet"
+      # chown -R evadev:evadev @big_media
       "/big_media"
-      # chattr +C
+      # chattr +C @var_cache
       "/var/cache"
-      # chattr +C
+      # chattr +C @var_log
       "/var/log"
-      # chattr +C
-      # drwxrwxrwt
+      # chattr +C @var_tmp
+      # chmod +t @var_tmp
       "/var/tmp"
     ]
   );

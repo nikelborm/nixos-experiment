@@ -13,7 +13,7 @@
       ...
     }:
     {
-      nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.xiaomi-A35S-laptop = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
           disko.nixosModules.disko
