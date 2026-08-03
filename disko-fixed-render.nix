@@ -18,6 +18,7 @@ let
       subvol_opt = "subvol=/@" + builtins.replaceStrings [ "/" ] [ "_" ] relative;
     in
     {
+      # TODO: potentially change to "/dev/mapper/pool-root" in such cases?
       device = "/dev/pool/root";
       fsType = "btrfs";
       options = [

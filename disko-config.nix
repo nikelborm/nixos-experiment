@@ -49,9 +49,12 @@ let
       # nocow on both images,boot because we don't know for sure the
       # modifications workload and it has a chance of being heavy random updates
       # chattr +C @var_lib_libvirt_images
+      # chmod ug+x @var_lib_libvirt_images
+      # chown libvirt:libvirt @var_lib_libvirt_images
       "/var/lib/libvirt/images"
       # chattr +C @var_lib_libvirt_boot
       # so that people can freely add images and it will get libvirt group
+      # instead of file creator group
       # chmod g+s @var_lib_libvirt_boot
       # chown libvirt:libvirt @var_lib_libvirt_boot
       "/var/lib/libvirt/boot"

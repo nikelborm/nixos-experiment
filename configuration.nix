@@ -5,12 +5,6 @@
   ...
 }:
 {
-  # ===================================================================
-  # Runtime (installed-system) settings that the LUKS + TPM2 unlock in
-  # disko-config.nix depends on. Imported by flake.nix alongside the
-  # disko module and disko-config.nix.
-  # ===================================================================
-
   # --- REQUIRED for TPM2 auto-unlock -------------------------------
   # systemd stage-1 initrd is what actually talks to the TPM and honours
   # the `tpm2-device=auto` crypttab option that disko-config.nix sets on
@@ -25,10 +19,7 @@
   # early boot cannot find the chip.
   # boot.initrd.availableKernelModules = [ "tpm_crb" "tpm_tis" ];
 
-  # --- Boot loader -------------------------------------------------
-  # systemd-boot on the unencrypted ESP (/boot is mounted by
-  # disko-config.nix). It pairs cleanly with the systemd stage-1 initrd
-  # enabled above.
+  # Pairs cleanly with the systemd stage-1 initrd enabled above.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/efi";
@@ -46,14 +37,36 @@
   #   pkiBundle = "/var/lib/sbctl";
   # };
 
-  # --- Minimal system identity (fill in for a real install) --------
-  networking.hostName = "xiaomi-A35S-laptop";
+  networking.hostName = "xiaomi-A35S-laptop-nixos";
+  networking.networkmanager.enable = true;
+  i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "Europe/Moscow";
+
+  services.pipewire.enable = true;
+  services.libinput.enable = true;
+
   users.users.evadev = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
   };
 
-  # Set to the NixOS release you FIRST installed with; do not bump casually.
-  # system.stateVersion = "25.05";
+  environment.systemPackages = with pkgs; [
+    tree
+    micro-with-wl-clipboard
+    wget
+    curl
+  ];
+
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+
+  # TODO enable only maybe for virtual machine?
+  services.openssh.enable = true;
+
+  networking.firewall.enable = false;
+
+  # The NixOS release FIRST installed with; do not bump casually.
+  system.stateVersion = "26.05";
 }
