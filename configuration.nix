@@ -55,6 +55,7 @@
     micro-with-wl-clipboard
     wget
     curl
+    git
   ];
 
   programs.gnupg.agent = {

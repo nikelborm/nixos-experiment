@@ -13,7 +13,7 @@
       ...
     }:
     {
-      nixosConfigurations.xiaomi-A35S-laptop = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.xiaomi-A35S-laptop-nixos = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         # specialArgs is resolved before `config`, so these can be used in
         # `imports` without triggering infinite recursion
