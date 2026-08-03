@@ -1,10 +1,10 @@
-{ config, lib, pkgs, modulesPath, disko, ... }: {
+{ config, lib, pkgs, modulesPath, inputs, ... }: {
   imports =
     [
       (modulesPath + "/profiles/qemu-guest.nix")
       # in vm we can afford to wipe the whole disk, so disko's generated
       # params are correct
-      disko.nixosModules.disko
+      inputs.disko.nixosModules.disko
       ./disko-config.nix
     ];
 

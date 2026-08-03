@@ -1,4 +1,4 @@
-{ config, lib, pkgs, modulesPath, disko, ... }: {
+{ config, lib, pkgs, modulesPath, ... }: {
   imports =
     [
       # the final layout turned out to be different in small details, becase I
