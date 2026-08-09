@@ -58,6 +58,7 @@
     enableSSHSupport = true;
   };
 
+  programs.niri.enable = true;
 
   users.users.evadev = {
     isNormalUser = true;

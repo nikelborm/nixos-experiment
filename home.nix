@@ -49,8 +49,6 @@ in
     ];
   };
 
-  programs.niri.enable = true;
-
   xdg.configFile."niri/config.kdl".text = ''
     spawn-at-startup "noctalia-shell"
 
