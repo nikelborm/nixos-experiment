@@ -88,10 +88,6 @@ in
       package = pkgs.nerd-fonts.jetbrains-mono;
       size = 18.0;
     };
-    launchOptions = [
-      "--single-instance"
-      "--listen-on=unix:/tmp/my-kitty-socket"
-    ];
     settings = {
       bold_font = "JetBrainsMono NFM ExtraBold";
       italic_font = "JetBrainsMono NFM SemiBold Italic";
@@ -114,6 +110,7 @@ in
 
       # so that copiying in micro would work
       clipboard_control = "write-clipboard write-primary read-clipboard read-primary";
+      single_instance = "yes";
     };
     # TODO:
     # keybindings = {
