@@ -53,7 +53,6 @@
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
-  home-manager.users.evadev = ./home.nix;
   users.users.evadev = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
@@ -182,26 +181,6 @@
   environment.sessionVariables.NIXOS_OZONE_WL = "1"; # Force Electron apps to use Wayland
 
   environment.variables.TERMINAL = "kitty";
-
-  #   let
-  #   terminalApps = [
-  #     # TODO: proper desktop file
-  #     "kitty.desktop"
-  #   ];
-  # in
-  # {
-  #   xdg.mimeApps.associations.added."application/x-shellscript" = lib.mkBefore terminalApps;
-  #   xdg.mimeApps.defaultApplications."application/x-shellscript" = lib.mkBefore terminalApps;
-  #   xdg.terminal-exec.settings.default = "kitty.desktop";
-  # }
-
-  environment.etc."xdg/mimeapps.list".text = ''
-    [Default Applications]
-    application/x-shellscript=kitty.desktop
-
-    [Added Associations]
-    application/x-shellscript=kitty.desktop;
-  '';
 
   # TODO enable only maybe for virtual machine?
   services.openssh.enable = true;

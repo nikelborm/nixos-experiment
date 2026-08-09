@@ -1,15 +1,48 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-hardware.url = "github:nixos/nixos-hardware";
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    stylix = {
+      url = "github:nix-community/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    nixcord = {
+      url = "github:FlameFlag/nixcord";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    erosanix = {
+      url = "github:emmanuelrosa/erosanix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    dewclaw = {
+      url = "github:MakiseKurisu/dewclaw";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    niri.url = "github:sodiboo/niri-flake";
+    noctalia.url = "github:noctalia-dev/noctalia/cachix";
+
   };
 
   outputs =
     inputs@{
       self,
       nixpkgs,
-      disko,
+      home-manager,
       ...
     }:
     {
@@ -21,6 +54,14 @@
         modules = [
           ./hardware-laptop.nix
           ./configuration.nix
+
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+
+            home-manager.users.evadev = import ./home.nix;
+          }
         ];
       };
     };

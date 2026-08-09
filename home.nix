@@ -1,4 +1,4 @@
-{ pkgs, config, ... }:
+{ pkgs, config,lib, ... }:
 let
   replaceDesktopItem =
     package: name: newExec:
@@ -8,6 +8,12 @@ let
       sed 's|^Exec=.*$|Exec=${newExec}|' "$src" > $out/${name}
     '')
     + /${name};
+
+  terminalApps = [
+    # TODO: proper desktop file
+    "kitty.desktop"
+  ];
+
 in
 {
   xdg.autostart = {
@@ -118,4 +124,8 @@ in
     #   "kitty_mod+f" = "launch --allow-remote-control kitty +kitten kitty_search/search.py @active-kitty-window-id";
     # };
   };
+
+  xdg.mimeApps.associations.added."application/x-shellscript" = lib.mkBefore terminalApps;
+  xdg.mimeApps.defaultApplications."application/x-shellscript" = lib.mkBefore terminalApps;
+  xdg.terminal-exec.settings.default = "kitty.desktop";
 }
