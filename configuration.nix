@@ -53,6 +53,12 @@
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
+  programs.gnupg.agent = {
+    enable = true;
+    enableSSHSupport = true;
+  };
+
+
   users.users.evadev = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];

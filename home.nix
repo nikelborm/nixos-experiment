@@ -72,10 +72,6 @@ in
     }
   '';
 
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
 
   programs.kitty = {
     enable = true;
