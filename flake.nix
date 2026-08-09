@@ -45,12 +45,23 @@
       home-manager,
       ...
     }:
+    let
+      system = "x86_64-linux";
+      pkgs = import ./nixpkgs.nix { inherit system inputs; };
+
+      mkSpecialArgs = username: {
+        inherit
+          self
+          inputs
+          username
+          ;
+        flakePath = "/home/${username}/config/nix";
+      };
+    in
     {
       nixosConfigurations.xiaomi-A35S-laptop-nixos = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        # specialArgs is resolved before `config`, so these can be used in
-        # `imports` without triggering infinite recursion
-        specialArgs = { inherit inputs; };
+        inherit system pkgs;
+        specialArgs = mkSpecialArgs "evadev";
         modules = [
           ./hardware-vm.nix
           ./configuration.nix
@@ -60,7 +71,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
 
-            home-manager.users.evadev = import ./home.nix;
+            home-manager.users.${username} = import ./home.nix;
           }
         ];
       };
