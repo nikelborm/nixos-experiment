@@ -1,9 +1,9 @@
 # nix repl --experimental-features "nix-command flakes"
 # :lf .
-# :p nixosConfigurations.xiaomi-A35S-laptop.config.fileSystems
-# :p nixosConfigurations.xiaomi-A35S-laptop.config.swapDevices
-# :p nixosConfigurations.xiaomi-A35S-laptop.config.boot.initrd.luks.devices
-# :p nixosConfigurations.xiaomi-A35S-laptop.config.boot.resumeDevice
+# :p nixosConfigurations.xiaomi-A35S-laptop-nixos.config.fileSystems
+# :p nixosConfigurations.xiaomi-A35S-laptop-nixos.config.swapDevices
+# :p nixosConfigurations.xiaomi-A35S-laptop-nixos.config.boot.initrd.luks.devices
+# :p nixosConfigurations.xiaomi-A35S-laptop-nixos.config.boot.resumeDevice
 {
   config,
   lib,

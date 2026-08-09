@@ -1,1 +1,1 @@
-nixos-install --flake '.#xiaomi-A35S-laptop'
+nixos-install --flake '.#xiaomi-A35S-laptop-nixos'
