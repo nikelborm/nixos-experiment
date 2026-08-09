@@ -1,4 +1,10 @@
-{ pkgs, config,lib, ... }:
+{
+  pkgs,
+  config,
+  username,
+  lib,
+  ...
+}:
 let
   replaceDesktopItem =
     package: name: newExec:
@@ -16,6 +22,19 @@ let
 
 in
 {
+
+  home = {
+    #? https://nix-community.github.io/home-manager/release-notes.xhtml
+    stateVersion = lib.mkDefault "26.05";
+
+    inherit username;
+    homeDirectory = "/home/${username}";
+
+    preferXdgDirectories = true;
+  };
+
+  xdg.enable = true;
+
   xdg.autostart = {
     enable = true;
     entries = [
@@ -69,7 +88,6 @@ in
       Mod+D { spawn "fuzzel"; }
     }
   '';
-
 
   programs.kitty = {
     enable = true;
