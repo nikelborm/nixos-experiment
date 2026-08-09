@@ -6,13 +6,13 @@
 }:
 {
   # --- REQUIRED for TPM2 auto-unlock -------------------------------
-    # systemd stage-1 initrd is what actually talks to the TPM and honours
-    # the `tpm2-device=auto` crypttab option that disko-config.nix sets on
-    # the LUKS device. Without this, TPM unlock in initrd does NOT happen.
+  # systemd stage-1 initrd is what actually talks to the TPM and honours
+  # the `tpm2-device=auto` crypttab option that disko-config.nix sets on
+  # the LUKS device. Without this, TPM unlock in initrd does NOT happen.
   boot.initrd.systemd.enable = true;
 
   # TPM2 userland on the running system, needed to run the one-time
-    # `systemd-cryptenroll --tpm2-device=auto ...` enrollment.
+  # `systemd-cryptenroll --tpm2-device=auto ...` enrollment.
   security.tpm2.enable = true;
 
   # The TPM kernel driver is normally auto-detected. Uncomment only if
@@ -159,7 +159,6 @@
     swaylock
     transmission-gtk
     niri
-    noctalia-shell
     imhex
     kitty
   ];
