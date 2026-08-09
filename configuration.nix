@@ -217,16 +217,15 @@
       package = pkgs.nerd-fonts.jetbrains-mono;
       size = 18.0;
     };
-    boldFont = {
-      name = "JetBrainsMono NFM ExtraBold";
-    };
-    italicFont = {
-      name = "JetBrainsMono NFM SemiBold Italic";
-    };
-    boldItalicFont = {
-      name = "JetBrainsMono NFM ExtraBold Italic";
-    };
+    launchOptions = [
+      "--single-instance"
+      "--listen-on=unix:/tmp/my-kitty-socket"
+    ];
     settings = {
+      bold_font = "JetBrainsMono NFM ExtraBold";
+      italic_font = "JetBrainsMono NFM SemiBold Italic";
+      bold_italic_font = "JetBrainsMono NFM ExtraBold Italic";
+
       # font_family FiraCode Nerd Font Mono
 
       hide_window_decorations = "True";
