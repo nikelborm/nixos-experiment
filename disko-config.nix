@@ -13,9 +13,8 @@ let
     };
   };
 
-  btrfsOpts = [
+  btrfsBaseOpts = [
     "noatime"
-    "compress=zstd"
     # stated these explicitly rather than relying on btrfs auto-detection: the
     # filesystem sits on top of a LUKS+LVM device-mapper stack, where the
     # underlying `rotational` flag does not always propagate, so we don't want
@@ -23,56 +22,141 @@ let
     "ssd"
     "space_cache=v2"
   ];
+  btrfsCompressOpts = btrfsBaseOpts ++ [ "compress=zstd" ];
+  btrfsNoCompressOpts = btrfsBaseOpts ++ [ "compress=none" ];
 
+
+  # Very important detail I learned recently is that when mounting many different
+  # subvolumes from the same device, the compress option of the first subvolume
+  # applies to the whole filesystem and all other mounted subvolumes, so I need
+  # to call `btrfs property set` manually to actually control this the way I want
+
+  # Also another important detail for chattr: lowercase c is compression,
+  # uppercase C is nocow
   rootSubvolumes = builtins.listToAttrs (
     map mkSubvol [
+      # btrfs property set ./@/ compression zstd
       "/"
+
+      # mkdir -p ./@/home
+      # btrfs property set ./@/home compression zstd
+      # btrfs property set ./@home compression zstd
       "/home"
-      # chattr +C @home_evadev_.cache
+
+      # TODO: need a separate folder not on .cache partition to store npm packages
+
+      # mkdir -p ./@home/evadev/.cache
+      # chattr +C ./@home_evadev_.cache ./@home/evadev/.cache
+      # chown -R 1000:1000 ./@home_evadev_.cache ./@home/evadev
+      # nocow, because has writes often and doesn't compress well (compression
+      # is not supported with nocow) a separate partition to exclude from snapshots
       {
         mountpoint = "/home/evadev/.cache";
-        extraOptions = [ "nofail" ];
+        options = btrfsNoCompressOpts ++ [ "nofail" ];
       }
-      # chattr +C @home_evadev_.vagrant.d_boxes/
-      # touch @home_evadev_.vagrant.d_boxes/.gitkeep
-      # chown -R evadev:evadev @home_evadev_.vagrant.d_boxes
+
+      # mkdir -p ./@home/evadev/.vagrant.d/boxes
+      # btrfs property set ./@home_evadev_.vagrant.d_boxes compression zstd
+      # btrfs property set ./@home/evadev/.vagrant.d/boxes compression zstd
+      # touch ./@home_evadev_.vagrant.d_boxes/.gitkeep
+      # chown -R 1000:1000 ./@home_evadev_.vagrant.d_boxes ./@home/evadev
       {
         mountpoint = "/home/evadev/.vagrant.d/boxes";
-        extraOptions = [ "nofail" ];
+        #! no point in making it nocow, because live images live elsewhere
+        #! and we can also compress base images
+        options = btrfsCompressOpts ++ [ "nofail" ];
       }
-      # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_save
+
+      # mkdir -p ./@/var/lib/libvirt/qemu/save
+      # btrfs property set ./@var_lib_libvirt_qemu_save compression zstd
+      # btrfs property set ./@/var/lib/libvirt/qemu/save compression zstd
+      # chown libvirt-qemu:libvirt-qemu ./@var_lib_libvirt_qemu_save ./@/var/lib/libvirt/qemu/save
       "/var/lib/libvirt/qemu/save"
-      # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_dump
+
+      # mkdir -p ./@/var/lib/libvirt/qemu/dump
+      # btrfs property set ./@var_lib_libvirt_qemu_dump compression zstd
+      # btrfs property set ./@/var/lib/libvirt/qemu/dump compression zstd
+      # chown libvirt-qemu:libvirt-qemu ./@var_lib_libvirt_qemu_dump ./@/var/lib/libvirt/qemu/dump
       "/var/lib/libvirt/qemu/dump"
-      # chown libvirt-qemu:libvirt-qemu @var_lib_libvirt_qemu_ram
+
+      # mkdir -p ./@/var/lib/libvirt/qemu/ram
+      # btrfs property set ./@var_lib_libvirt_qemu_ram compression zstd
+      # btrfs property set ./@/var/lib/libvirt/qemu/ram compression zstd
+      # chown libvirt-qemu:libvirt-qemu ./@var_lib_libvirt_qemu_ram ./@/var/lib/libvirt/qemu/ram
       "/var/lib/libvirt/qemu/ram"
-      # nocow on both images,boot because we don't know for sure the
-      # modifications workload and it has a chance of being heavy random updates
-      # chattr +C @var_lib_libvirt_images
-      # chmod ug+x @var_lib_libvirt_images
-      # chown libvirt:libvirt @var_lib_libvirt_images
-      "/var/lib/libvirt/images"
-      # chattr +C @var_lib_libvirt_boot
+
+      # nocow on images because it has heavy random-like updates
+      # mkdir -p ./@/var/lib/libvirt/images
+      # chattr +C ./@var_lib_libvirt_images ./@/var/lib/libvirt/images
+      # chmod ug+x ./@var_lib_libvirt_images ./@/var/lib/libvirt/images
+      # chown root:libvirt ./@var_lib_libvirt_images ./@/var/lib/libvirt/images
+      {
+        # mount without compression, because nocow doesn't support it
+        mountpoint = "/var/lib/libvirt/images";
+        options = btrfsNoCompressOpts;
+      }
+
       # so that people can freely add images and it will get libvirt group
       # instead of file creator group
-      # chmod g+s @var_lib_libvirt_boot
-      # chown libvirt:libvirt @var_lib_libvirt_boot
+      # mkdir -p ./@/var/lib/libvirt/boot
+      # btrfs property set ./@var_lib_libvirt_boot compression zstd
+      # btrfs property set ./@/var/lib/libvirt/boot compression zstd
+      # chmod g+s ./@var_lib_libvirt_boot ./@/var/lib/libvirt/boot
+      # chown root:libvirt ./@var_lib_libvirt_boot ./@/var/lib/libvirt/boot
       "/var/lib/libvirt/boot"
-      # chown libvirt-qemu:libvirt-qemu @var_lib_ollama
+
+      # mkdir -p ./@/var/lib/ollama
+      # chown ollama:ollama ./@var_lib_ollama ./@/var/lib/ollama
+      # mkdir ./@/var/lib/ollama/.cache
+      # chattr +C ./@/var/lib/ollama/.cache
+      # btrfs property set ./@var_lib_ollama compression none
+      # btrfs property set ./@/var/lib/ollama compression none
+      # mkdir ./@/var/lib/ollama/blobs
+      # btrfs property set ./@/var/lib/ollama/blobs compression none
       "/var/lib/ollama"
+
+      # mkdir -p ./@/var/lib/docker
+      # btrfs property set ./@var_lib_docker compression zstd
+      # btrfs property set ./@/var/lib/docker compression zstd
       "/var/lib/docker"
+
+      # mkdir -p ./@/var/lib/containers
+      # btrfs property set ./@var_lib_containers compression zstd
+      # btrfs property set ./@/var/lib/containers compression zstd
       "/var/lib/containers"
+
+      # mkdir -p ./@/var/lib/containerd
+      # btrfs property set ./@var_lib_containerd compression zstd
+      # btrfs property set ./@/var/lib/containerd compression zstd
       "/var/lib/containerd"
+
+      # mkdir -p ./@/var/lib/rancher
+      # btrfs property set ./@var_lib_rancher compression zstd
+      # btrfs property set ./@/var/lib/rancher compression zstd
       "/var/lib/rancher"
+
+      # mkdir -p ./@/var/lib/kubelet
+      # btrfs property set ./@var_lib_kubelet compression zstd
+      # btrfs property set ./@/var/lib/kubelet compression zstd
       "/var/lib/kubelet"
-      # chown -R evadev:evadev @big_media
+
+      # mkdir -p ./@/big_media
+      # chown -R 1000:1000 ./@big_media ./@/big_media
+      # btrfs property set ./@big_media compression zstd
+      # btrfs property set ./@/big_media compression zstd
       "/big_media"
-      # chattr +C @var_cache
+
+      # mkdir -p ./@/var/cache
+      # chattr +C ./@var_cache ./@/var/cache
       "/var/cache"
-      # chattr +C @var_log
+
+      # mkdir -p ./@/var/log
+      # chattr +C ./@var_log ./@/var/log
       "/var/log"
-      # chattr +C @var_tmp
-      # chmod +t @var_tmp
+
+      # mkdir -p ./@/var/tmp
+      # chattr +C ./@var_tmp ./@/var/tmp
+      # chmod +t ./@var_tmp ./@/var/tmp
       "/var/tmp"
     ]
   );
@@ -222,16 +306,14 @@ let
     entry:
     let
       mountpoint = if builtins.isString entry then entry else entry.mountpoint;
-      extraOptions = if builtins.isString entry then [ ] else entry.extraOptions;
       # Drop the leading "/" (substring from index 1); "/" itself becomes "".
       relative = builtins.substring 1 (builtins.stringLength mountpoint) mountpoint;
-      subvol = "@" + builtins.replaceStrings [ "/" ] [ "_" ] relative;
     in
     {
-      name = "/${subvol}";
+      name = "/@${builtins.replaceStrings [ "/" ] [ "_" ] relative}";
       value = {
         inherit mountpoint;
-        mountOptions = btrfsOpts ++ extraOptions;
+        mountOptions = if builtins.isString entry then btrfsCompressOpts else entry.options;
       };
     };
 in
