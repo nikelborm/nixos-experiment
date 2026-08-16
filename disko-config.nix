@@ -45,15 +45,13 @@ let
       # btrfs filesystem defragment -r -f -czstd ./@home
       "/home"
 
-      # TODO: need a separate folder not on .cache partition to store npm packages
-
       # mkdir -p ./@home/evadev/.cache
       # chattr +C ./@home_evadev_.cache ./@home/evadev/.cache
       # chown -R 1000:1000 ./@home_evadev_.cache ./@home/evadev
       # btrfs filesystem defragment -r -f --nocomp ./@home_evadev_.cache
       {
-        # nocow, because has writes often and doesn't compress well (compression
-        # is not supported with nocow) a separate partition to exclude from snapshots
+        #! nocow, because has writes often and doesn't compress well (compression
+        #! is not supported with nocow) a separate partition to exclude from snapshots
         mountpoint = "/home/evadev/.cache";
         options = btrfsNoCompressOpts ++ [ "nofail" ];
       }
@@ -104,8 +102,8 @@ let
         options = btrfsNoCompressOpts;
       }
 
-      # sticky bit so that people can freely add images and it will get libvirt
-      # group instead of file creator group
+      #! sticky bit so that people can freely add images and it will get libvirt
+      #! group instead of file creator group
 
       # mkdir -p ./@/var/lib/libvirt/boot
       # btrfs property set ./@var_lib_libvirt_boot compression zstd
@@ -123,7 +121,10 @@ let
       # btrfs property set ./@/var/lib/ollama compression none
       # mkdir -p ./@var_lib_ollama/blobs
       # btrfs filesystem defragment -r -f --nocomp ./@var_lib_ollama
-      "/var/lib/ollama"
+      {
+        mountpoint = "/var/lib/ollama";
+        options = btrfsNoCompressOpts;
+      }
 
       # mkdir -p ./@/var/lib/docker
       # btrfs property set ./@var_lib_docker compression zstd
@@ -157,6 +158,7 @@ let
 
       # mkdir -p ./@/big_media
       # chown -R 1000:1000 ./@big_media ./@/big_media
+      # chmod +rwx ./@big_media ./@/big_media
       # btrfs property set ./@big_media compression zstd
       # btrfs property set ./@/big_media compression zstd
       # btrfs filesystem defragment -r -f -czstd ./@big_media
@@ -165,18 +167,27 @@ let
       # mkdir -p ./@/var/cache
       # chattr +C ./@var_cache ./@/var/cache
       # btrfs filesystem defragment -r -f --nocomp ./@var_cache
-      "/var/cache"
+      {
+        mountpoint = "/var/cache";
+        options = btrfsNoCompressOpts;
+      }
 
       # mkdir -p ./@/var/log
       # chattr +C ./@var_log ./@/var/log
       # btrfs filesystem defragment -r -f --nocomp ./@var_log
-      "/var/log"
+      {
+        mountpoint = "/var/log";
+        options = btrfsNoCompressOpts;
+      }
 
       # mkdir -p ./@/var/tmp
       # chattr +C ./@var_tmp ./@/var/tmp
       # chmod +t ./@var_tmp ./@/var/tmp
       # btrfs filesystem defragment -r -f --nocomp ./@var_tmp
-      "/var/tmp"
+      {
+        mountpoint = "/var/tmp";
+        options = btrfsNoCompressOpts;
+      }
     ]
   );
 
