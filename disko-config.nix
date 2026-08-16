@@ -36,11 +36,13 @@ let
   rootSubvolumes = builtins.listToAttrs (
     map mkSubvol [
       # btrfs property set ./@/ compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@
       "/"
 
       # mkdir -p ./@/home
       # btrfs property set ./@/home compression zstd
       # btrfs property set ./@home compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@home
       "/home"
 
       # TODO: need a separate folder not on .cache partition to store npm packages
@@ -48,9 +50,10 @@ let
       # mkdir -p ./@home/evadev/.cache
       # chattr +C ./@home_evadev_.cache ./@home/evadev/.cache
       # chown -R 1000:1000 ./@home_evadev_.cache ./@home/evadev
-      # nocow, because has writes often and doesn't compress well (compression
-      # is not supported with nocow) a separate partition to exclude from snapshots
+      # btrfs filesystem defragment -r -f --nocomp ./@home_evadev_.cache
       {
+        # nocow, because has writes often and doesn't compress well (compression
+        # is not supported with nocow) a separate partition to exclude from snapshots
         mountpoint = "/home/evadev/.cache";
         options = btrfsNoCompressOpts ++ [ "nofail" ];
       }
@@ -59,7 +62,8 @@ let
       # btrfs property set ./@home_evadev_.vagrant.d_boxes compression zstd
       # btrfs property set ./@home/evadev/.vagrant.d/boxes compression zstd
       # touch ./@home_evadev_.vagrant.d_boxes/.gitkeep
-      # chown -R 1000:1000 ./@home_evadev_.vagrant.d_boxes ./@home/evadev
+      # chown -R 1000:1000 ./@home_evadev_.vagrant.d_boxes ./@home/evadev/.vagrant.d
+      # btrfs filesystem defragment -r -f -czstd ./@home_evadev_.vagrant.d_boxes
       {
         mountpoint = "/home/evadev/.vagrant.d/boxes";
         #! no point in making it nocow, because live images live elsewhere
@@ -71,92 +75,107 @@ let
       # btrfs property set ./@var_lib_libvirt_qemu_save compression zstd
       # btrfs property set ./@/var/lib/libvirt/qemu/save compression zstd
       # chown libvirt-qemu:libvirt-qemu ./@var_lib_libvirt_qemu_save ./@/var/lib/libvirt/qemu/save
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_libvirt_qemu_save
       "/var/lib/libvirt/qemu/save"
 
       # mkdir -p ./@/var/lib/libvirt/qemu/dump
       # btrfs property set ./@var_lib_libvirt_qemu_dump compression zstd
       # btrfs property set ./@/var/lib/libvirt/qemu/dump compression zstd
       # chown libvirt-qemu:libvirt-qemu ./@var_lib_libvirt_qemu_dump ./@/var/lib/libvirt/qemu/dump
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_libvirt_qemu_dump
       "/var/lib/libvirt/qemu/dump"
 
       # mkdir -p ./@/var/lib/libvirt/qemu/ram
       # btrfs property set ./@var_lib_libvirt_qemu_ram compression zstd
       # btrfs property set ./@/var/lib/libvirt/qemu/ram compression zstd
       # chown libvirt-qemu:libvirt-qemu ./@var_lib_libvirt_qemu_ram ./@/var/lib/libvirt/qemu/ram
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_libvirt_qemu_ram
       "/var/lib/libvirt/qemu/ram"
 
-      # nocow on images because it has heavy random-like updates
       # mkdir -p ./@/var/lib/libvirt/images
       # chattr +C ./@var_lib_libvirt_images ./@/var/lib/libvirt/images
       # chmod ug+x ./@var_lib_libvirt_images ./@/var/lib/libvirt/images
       # chown root:libvirt ./@var_lib_libvirt_images ./@/var/lib/libvirt/images
+      # btrfs filesystem defragment -r -f --nocomp ./@var_lib_libvirt_images
       {
-        # mount without compression, because nocow doesn't support it
+        #! nocow on images because it has heavy random-like updates
+        #! mount without compression, because nocow doesn't support it
         mountpoint = "/var/lib/libvirt/images";
         options = btrfsNoCompressOpts;
       }
 
-      # so that people can freely add images and it will get libvirt group
-      # instead of file creator group
+      # sticky bit so that people can freely add images and it will get libvirt
+      # group instead of file creator group
+
       # mkdir -p ./@/var/lib/libvirt/boot
       # btrfs property set ./@var_lib_libvirt_boot compression zstd
       # btrfs property set ./@/var/lib/libvirt/boot compression zstd
       # chmod g+s ./@var_lib_libvirt_boot ./@/var/lib/libvirt/boot
       # chown root:libvirt ./@var_lib_libvirt_boot ./@/var/lib/libvirt/boot
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_libvirt_boot
       "/var/lib/libvirt/boot"
 
       # mkdir -p ./@/var/lib/ollama
       # chown ollama:ollama ./@var_lib_ollama ./@/var/lib/ollama
-      # mkdir ./@/var/lib/ollama/.cache
+      # mkdir -p ./@/var/lib/ollama/.cache
       # chattr +C ./@/var/lib/ollama/.cache
       # btrfs property set ./@var_lib_ollama compression none
       # btrfs property set ./@/var/lib/ollama compression none
-      # mkdir ./@/var/lib/ollama/blobs
-      # btrfs property set ./@/var/lib/ollama/blobs compression none
+      # mkdir -p ./@var_lib_ollama/blobs
+      # btrfs filesystem defragment -r -f --nocomp ./@var_lib_ollama
       "/var/lib/ollama"
 
       # mkdir -p ./@/var/lib/docker
       # btrfs property set ./@var_lib_docker compression zstd
       # btrfs property set ./@/var/lib/docker compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_docker
       "/var/lib/docker"
 
       # mkdir -p ./@/var/lib/containers
       # btrfs property set ./@var_lib_containers compression zstd
       # btrfs property set ./@/var/lib/containers compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_containers
       "/var/lib/containers"
 
       # mkdir -p ./@/var/lib/containerd
       # btrfs property set ./@var_lib_containerd compression zstd
       # btrfs property set ./@/var/lib/containerd compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_containerd
       "/var/lib/containerd"
 
       # mkdir -p ./@/var/lib/rancher
       # btrfs property set ./@var_lib_rancher compression zstd
       # btrfs property set ./@/var/lib/rancher compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_rancher
       "/var/lib/rancher"
 
       # mkdir -p ./@/var/lib/kubelet
       # btrfs property set ./@var_lib_kubelet compression zstd
       # btrfs property set ./@/var/lib/kubelet compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@var_lib_kubelet
       "/var/lib/kubelet"
 
       # mkdir -p ./@/big_media
       # chown -R 1000:1000 ./@big_media ./@/big_media
       # btrfs property set ./@big_media compression zstd
       # btrfs property set ./@/big_media compression zstd
+      # btrfs filesystem defragment -r -f -czstd ./@big_media
       "/big_media"
 
       # mkdir -p ./@/var/cache
       # chattr +C ./@var_cache ./@/var/cache
+      # btrfs filesystem defragment -r -f --nocomp ./@var_cache
       "/var/cache"
 
       # mkdir -p ./@/var/log
       # chattr +C ./@var_log ./@/var/log
+      # btrfs filesystem defragment -r -f --nocomp ./@var_log
       "/var/log"
 
       # mkdir -p ./@/var/tmp
       # chattr +C ./@var_tmp ./@/var/tmp
       # chmod +t ./@var_tmp ./@/var/tmp
+      # btrfs filesystem defragment -r -f --nocomp ./@var_tmp
       "/var/tmp"
     ]
   );
