@@ -20,6 +20,8 @@ When calling long-running processes, make sure to redirect the output to some te
 
 Be sure to keep me in the loop, ask me questions on every decision branch. DO NOT FUCKING RUMINATE!! JUST ASK QUICKLY WITHOUT FUCKING LOOPS TO TRY TO GUESS WHAT I MEANT!!! IF I'M WRONG ABOUT MY APPROACH SAY SO! Ask me for clarifications! But if it involves doing anything right inside the virtual machine, feel free to do anything you want without any hesitation to check your hypothese or make experiments. The VM is purely for tests, kill, burn, delete, create anything you want in it, as long as it is generally flows throught the git flow I described earlier.
 
+Consider any markdown files useless. I didn't write them, I don't care about them, the are likely already all outdated, I dont trust them and neither should you.
+
 Your current task is installing into the current VM through nix config the following software: pass-wayland (the unix password manager), anytype, btrfs assistant, gparted, Oh My Pi (has https://github.com/can1357/oh-my-pi/blob/main/flake.nix). Make sure when installing stuff, that is uses the same nixpkgs that the main profile uses. I don't want to have a lot of nixpkgs versions in parallel, especially regarding omp. You already made a commit with most of the work (e014cdd3aaf31805e59da9952580bc4284f80cc0)
 
 Your last attempt at rebuild switch failed with this:

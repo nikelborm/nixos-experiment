@@ -55,7 +55,7 @@
           inputs
           username
           ;
-        flakePath = "/home/${username}/config/nix";
+        flakePath = "/home/${username}/projects/nixos-config";
       };
     in
     {
