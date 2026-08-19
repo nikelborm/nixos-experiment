@@ -23,7 +23,7 @@ let
       fsType = "btrfs";
       options = [
         "noatime"
-        "compress=zstd"
+        "compress=zstd:11"
         "ssd"
         "space_cache=v2"
         subvol_opt
