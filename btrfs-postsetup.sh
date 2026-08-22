@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
+# Very important detail I learned recently is that when mounting many different
+# subvolumes from the same device, the compress option of the first subvolume
+# applies to the whole filesystem and all other mounted subvolumes, so I need
+# to call `btrfs property set` manually to actually control this the way I want
+
+# Important detail for chattr: lowercase c is compression, uppercase C is nocow
+
 root_subvolume=./@arch_root
 
 # "/"
@@ -17,6 +24,8 @@ btrfs filesystem defragment -r -f -czstd -L 15 ./@home
 # "/home/evadev/.cache"
 mkdir -p ./@home/evadev/.cache
 chattr -mc ./@home_evadev_.cache ./@home/evadev/.cache
+#! nocow, because has writes often and doesn't compress well (compression
+#! is not supported with nocow) a separate partition to exclude from snapshots
 chattr +C  ./@home_evadev_.cache ./@home/evadev/.cache
 chown -R 1000:1000 ./@home_evadev_.cache ./@home/evadev
 btrfs filesystem defragment -r -f --nocomp ./@home_evadev_.cache
@@ -26,6 +35,8 @@ mkdir -p ./@home/evadev/.vagrant.d/boxes
 btrfs property set ./@home_evadev_.vagrant.d_boxes compression zstd
 btrfs property set ./@home/evadev/.vagrant.d/boxes compression zstd
 touch ./@home_evadev_.vagrant.d_boxes/.gitkeep
+#! no point in making it nocow, because live images live elsewhere
+#! and we can also compress base images
 chown -R 1000:1000 ./@home_evadev_.vagrant.d_boxes ./@home/evadev/.vagrant.d
 btrfs filesystem defragment -r -f -czstd -L 15 ./@home_evadev_.vagrant.d_boxes
 
@@ -53,6 +64,8 @@ btrfs filesystem defragment -r -f -czstd -L 15 ./@var_lib_libvirt_qemu_ram
 # "/var/lib/libvirt/images"
 mkdir -p $root_subvolume/var/lib/libvirt/images
 chattr -mc ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
+#! nocow on images because it has heavy random-like updates
+#! mount without compression, because nocow doesn't support it
 chattr +C  ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
 chmod ug+x ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
 chown root:libvirt ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
@@ -62,6 +75,8 @@ btrfs filesystem defragment -r -f --nocomp ./@var_lib_libvirt_images
 mkdir -p $root_subvolume/var/lib/libvirt/boot
 btrfs property set ./@var_lib_libvirt_boot compression zstd
 btrfs property set $root_subvolume/var/lib/libvirt/boot compression zstd
+#! sticky bit so that people can freely add images and it will get libvirt
+#! group instead of file creator group
 chmod g+s ./@var_lib_libvirt_boot $root_subvolume/var/lib/libvirt/boot
 chown root:libvirt ./@var_lib_libvirt_boot $root_subvolume/var/lib/libvirt/boot
 btrfs filesystem defragment -r -f -czstd -L 15 ./@var_lib_libvirt_boot
