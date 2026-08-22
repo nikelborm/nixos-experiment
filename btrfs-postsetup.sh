@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-root_subvolume=./@
+root_subvolume=./@arch_root
 
 # "/"
 btrfs property set $root_subvolume/ compression zstd
@@ -16,7 +16,8 @@ btrfs filesystem defragment -r -f -czstd -L 15 ./@home
 
 # "/home/evadev/.cache"
 mkdir -p ./@home/evadev/.cache
-chattr +C ./@home_evadev_.cache ./@home/evadev/.cache
+chattr -mc ./@home_evadev_.cache ./@home/evadev/.cache
+chattr +C  ./@home_evadev_.cache ./@home/evadev/.cache
 chown -R 1000:1000 ./@home_evadev_.cache ./@home/evadev
 btrfs filesystem defragment -r -f --nocomp ./@home_evadev_.cache
 
@@ -51,7 +52,8 @@ btrfs filesystem defragment -r -f -czstd -L 15 ./@var_lib_libvirt_qemu_ram
 
 # "/var/lib/libvirt/images"
 mkdir -p $root_subvolume/var/lib/libvirt/images
-chattr +C ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
+chattr -mc ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
+chattr +C  ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
 chmod ug+x ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
 chown root:libvirt ./@var_lib_libvirt_images $root_subvolume/var/lib/libvirt/images
 btrfs filesystem defragment -r -f --nocomp ./@var_lib_libvirt_images
@@ -68,6 +70,7 @@ btrfs filesystem defragment -r -f -czstd -L 15 ./@var_lib_libvirt_boot
 mkdir -p $root_subvolume/var/lib/ollama
 chown ollama:ollama ./@var_lib_ollama $root_subvolume/var/lib/ollama
 mkdir -p $root_subvolume/var/lib/ollama/.cache
+chattr -mc $root_subvolume/var/lib/ollama/.cache
 chattr +C $root_subvolume/var/lib/ollama/.cache
 btrfs property set ./@var_lib_ollama compression none
 btrfs property set $root_subvolume/var/lib/ollama compression none
@@ -114,16 +117,19 @@ btrfs filesystem defragment -r -f -czstd -L 15 ./@big_media
 
 # "/var/cache"
 mkdir -p $root_subvolume/var/cache
+chattr -mc $root_subvolume/var/cache
 chattr +C ./@var_cache $root_subvolume/var/cache
 btrfs filesystem defragment -r -f --nocomp ./@var_cache
 
 # "/var/log"
 mkdir -p $root_subvolume/var/log
+chattr -mc $root_subvolume/var/log
 chattr +C ./@var_log $root_subvolume/var/log
 btrfs filesystem defragment -r -f --nocomp ./@var_log
 
 # "/var/tmp"
 mkdir -p $root_subvolume/var/tmp
+chattr -mc $root_subvolume/var/tmp
 chattr +C ./@var_tmp $root_subvolume/var/tmp
 chmod +t ./@var_tmp $root_subvolume/var/tmp
 btrfs filesystem defragment -r -f --nocomp ./@var_tmp

@@ -385,7 +385,14 @@ in
           size = "100%"; # remainder of the VG
           content = {
             type = "btrfs";
-            extraArgs = [ "-f" ]; # Override existing filesystem
+            # Override existing filesystem, and choose xxhash which will catch
+            # errors with greater chance. Single encrypted bit flip causes 128-bit
+            # flip on decrypted side. This makes crc32c property of being certain
+            # to catch 100% of errors on single-bit flip usecases to disappear
+            # and become probabilistic 2⁻³². And since we're already on a
+            # non-deterministic zone, better to choose the algorithm that has
+            # stronger collision resistance
+            extraArgs = [ "--force" "--checksum" "xxhash" ];
             subvolumes = rootSubvolumes;
           };
         };
